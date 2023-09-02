@@ -239,9 +239,7 @@ public final class ChatListNavigationBar: Component {
             
             self.scrollTheme = component.theme
             self.scrollStrings = component.strings
-            
-            let searchOffsetDistance: CGFloat = ChatListNavigationBar.searchScrollHeight
-            
+
             let minContentOffset: CGFloat = ChatListNavigationBar.searchScrollHeight
             
             let clippedScrollOffset = min(minContentOffset, offset)
@@ -262,60 +260,7 @@ public final class ChatListNavigationBar: Component {
             self.backgroundView.layer.position = CGPoint(x: 0.0, y: visibleSize.height)
             
             transition.setFrameWithAdditivePosition(layer: self.separatorLayer, frame: CGRect(origin: CGPoint(x: 0.0, y: visibleSize.height), size: CGSize(width: visibleSize.width, height: UIScreenPixel)))
-            
-            let searchContentNode: NavigationBarSearchContentNode
-            if let current = self.searchContentNode {
-                searchContentNode = current
-                
-                if themeUpdated {
-                    let placeholder: String
-                    let compactPlaceholder: String
-                    
-                    placeholder = component.strings.Common_Search
-                    compactPlaceholder = component.strings.Common_Search
-                    
-                    searchContentNode.updateThemeAndPlaceholder(theme: component.theme, placeholder: placeholder, compactPlaceholder: compactPlaceholder)
-                }
-            } else {
-                let placeholder: String
-                let compactPlaceholder: String
-                
-                placeholder = component.strings.Common_Search
-                compactPlaceholder = component.strings.Common_Search
-                
-                searchContentNode = NavigationBarSearchContentNode(
-                    theme: component.theme,
-                    placeholder: placeholder,
-                    compactPlaceholder: compactPlaceholder,
-                    activate: { [weak self] in
-                        guard let self, let component = self.component, let searchContentNode = self.searchContentNode else {
-                            return
-                        }
-                        component.activateSearch(searchContentNode)
-                    }
-                )
-                searchContentNode.view.layer.anchorPoint = CGPoint()
-                self.searchContentNode = searchContentNode
-                self.addSubview(searchContentNode.view)
-            }
-            
-            let searchSize = CGSize(width: currentLayout.size.width - 6.0 * 2.0, height: navigationBarSearchContentHeight)
-            var searchFrame = CGRect(origin: CGPoint(x: 6.0, y: visibleSize.height - searchSize.height), size: searchSize)
-            if component.tabsNode != nil {
-                searchFrame.origin.y -= 40.0
-            }
-            if !component.isSearchActive {
-                searchFrame.origin.y -= component.accessoryPanelContainerHeight
-            }
-            
-            let clippedSearchOffset = max(0.0, min(clippedScrollOffset, searchOffsetDistance))
-            let searchOffsetFraction = clippedSearchOffset / searchOffsetDistance
-            searchContentNode.expansionProgress = 1.0 - searchOffsetFraction
-            
-            transition.setFrameWithAdditivePosition(view: searchContentNode.view, frame: searchFrame)
-            
-            searchContentNode.updateLayout(size: searchSize, leftInset: component.sideInset, rightInset: component.sideInset, transition: transition.containedViewLayoutTransition)
-            
+
             let headerTransition = transition
             
             let storiesOffsetFraction: CGFloat
@@ -425,11 +370,61 @@ public final class ChatListNavigationBar: Component {
                     }
                 }
             }
+
+            let searchContentNode: NavigationBarSearchContentNode
+            if let current = self.searchContentNode {
+                searchContentNode = current
+
+                if themeUpdated {
+                    let placeholder: String
+                    let compactPlaceholder: String
+
+                    placeholder = component.strings.Common_Search
+                    compactPlaceholder = component.strings.Common_Search
+
+                    searchContentNode.updateThemeAndPlaceholder(theme: component.theme, placeholder: placeholder, compactPlaceholder: compactPlaceholder)
+                }
+            } else {
+                let placeholder: String
+                let compactPlaceholder: String
+
+                placeholder = component.strings.Common_Search
+                compactPlaceholder = component.strings.Common_Search
+
+                searchContentNode = NavigationBarSearchContentNode(
+                        theme: component.theme,
+                        placeholder: placeholder,
+                        compactPlaceholder: compactPlaceholder,
+                        activate: { [weak self] in
+                            guard let self, let component = self.component, let searchContentNode = self.searchContentNode else {
+                                return
+                            }
+                            component.activateSearch(searchContentNode)
+                        }
+                )
+                searchContentNode.view.layer.anchorPoint = CGPoint()
+                self.searchContentNode = searchContentNode
+                self.addSubview(searchContentNode.view)
+            }
+
+            let searchSize = CGSize(width: currentLayout.size.width - 6.0 * 2.0, height: navigationBarSearchContentHeight)
+            var searchFrame = CGRect(origin: CGPoint(x: 6.0, y: headerContentY + searchSize.height - 16.0), size: searchSize)
             
+            if !component.isSearchActive {
+                searchFrame.origin.y -= component.accessoryPanelContainerHeight
+            }
+            let searchOffsetDistance: CGFloat = ChatListNavigationBar.searchScrollHeight
+            let clippedSearchOffset = max(0.0, min(clippedScrollOffset, searchOffsetDistance))
+            let searchOffsetFraction = clippedSearchOffset / searchOffsetDistance
+            searchContentNode.expansionProgress = 1.0 - searchOffsetFraction
+
+            transition.setFrameWithAdditivePosition(view: searchContentNode.view, frame: searchFrame)
+            searchContentNode.updateLayout(size: searchSize, leftInset: component.sideInset, rightInset: component.sideInset, transition: transition.containedViewLayoutTransition)
+
             if component.tabsNode !== self.tabsNode {
                 if let tabsNode = self.tabsNode {
                     tabsNode.layer.anchorPoint = CGPoint()
-                    
+
                     self.tabsNode = nil
                     let disappearingTabsView = tabsNode.view
                     self.disappearingTabsViewSearch = self.tabsNodeIsSearch
@@ -444,14 +439,19 @@ public final class ChatListNavigationBar: Component {
                     })
                 }
             }
-            
-            var tabsFrame = CGRect(origin: CGPoint(x: 0.0, y: visibleSize.height), size: CGSize(width: visibleSize.width, height: 46.0))
+
+            let tabsSize = CGSize(width: visibleSize.width, height: 46.0)
+            var tabsFrame = CGRect(origin: CGPoint(x: 0.0, y: searchFrame.origin.y + tabsSize.height), size: tabsSize)
             if !component.isSearchActive {
                 tabsFrame.origin.y -= component.accessoryPanelContainerHeight
+            } else {
+                tabsFrame.origin.y += searchFrame.origin.y + searchFrame.height
             }
+
             if component.tabsNode != nil {
                 tabsFrame.origin.y -= 46.0
             }
+            tabsFrame.origin.y += tabsSize.height * (1.0 - searchOffsetFraction)
             
             var accessoryPanelContainerFrame = CGRect(origin: CGPoint(x: 0.0, y: visibleSize.height), size: CGSize(width: visibleSize.width, height: component.accessoryPanelContainerHeight))
             if !component.isSearchActive {
