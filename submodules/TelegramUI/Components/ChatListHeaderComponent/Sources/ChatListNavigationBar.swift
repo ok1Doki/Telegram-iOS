@@ -14,13 +14,13 @@ public final class ChatListNavigationBar: Component {
     public final class AnimationHint {
         let disableStoriesAnimations: Bool
         let crossfadeStoryPeers: Bool
-        
+
         public init(disableStoriesAnimations: Bool, crossfadeStoryPeers: Bool) {
             self.disableStoriesAnimations = disableStoriesAnimations
             self.crossfadeStoryPeers = crossfadeStoryPeers
         }
     }
-    
+
     public let context: AccountContext
     public let theme: PresentationTheme
     public let strings: PresentationStrings
@@ -40,27 +40,27 @@ public final class ChatListNavigationBar: Component {
     public let activateSearch: (NavigationBarSearchContentNode) -> Void
     public let openStatusSetup: (UIView) -> Void
     public let allowAutomaticOrder: () -> Void
-    
+
     public init(
-        context: AccountContext,
-        theme: PresentationTheme,
-        strings: PresentationStrings,
-        statusBarHeight: CGFloat,
-        sideInset: CGFloat,
-        isSearchActive: Bool,
-        primaryContent: ChatListHeaderComponent.Content?,
-        secondaryContent: ChatListHeaderComponent.Content?,
-        secondaryTransition: CGFloat,
-        storySubscriptions: EngineStorySubscriptions?,
-        storiesIncludeHidden: Bool,
-        uploadProgress: Float?,
-        tabsNode: ASDisplayNode?,
-        tabsNodeIsSearch: Bool,
-        accessoryPanelContainer: ASDisplayNode?,
-        accessoryPanelContainerHeight: CGFloat,
-        activateSearch: @escaping (NavigationBarSearchContentNode) -> Void,
-        openStatusSetup: @escaping (UIView) -> Void,
-        allowAutomaticOrder: @escaping () -> Void
+            context: AccountContext,
+            theme: PresentationTheme,
+            strings: PresentationStrings,
+            statusBarHeight: CGFloat,
+            sideInset: CGFloat,
+            isSearchActive: Bool,
+            primaryContent: ChatListHeaderComponent.Content?,
+            secondaryContent: ChatListHeaderComponent.Content?,
+            secondaryTransition: CGFloat,
+            storySubscriptions: EngineStorySubscriptions?,
+            storiesIncludeHidden: Bool,
+            uploadProgress: Float?,
+            tabsNode: ASDisplayNode?,
+            tabsNodeIsSearch: Bool,
+            accessoryPanelContainer: ASDisplayNode?,
+            accessoryPanelContainerHeight: CGFloat,
+            activateSearch: @escaping (NavigationBarSearchContentNode) -> Void,
+            openStatusSetup: @escaping (UIView) -> Void,
+            allowAutomaticOrder: @escaping () -> Void
     ) {
         self.context = context
         self.theme = theme
@@ -134,15 +134,15 @@ public final class ChatListNavigationBar: Component {
         }
         return true
     }
-    
+
     private struct CurrentLayout {
         var size: CGSize
-        
+
         init(size: CGSize) {
             self.size = size
         }
     }
-    
+
     public static let searchScrollHeight: CGFloat = 52.0
     public static let storiesScrollHeight: CGFloat = {
         return 83.0
@@ -151,55 +151,55 @@ public final class ChatListNavigationBar: Component {
     public final class View: UIView {
         private let backgroundView: BlurredBackgroundView
         private let separatorLayer: SimpleLayer
-        
+
         public let headerContent = ComponentView<Empty>()
-        
+
         public private(set) var searchContentNode: NavigationBarSearchContentNode?
-        
+
         private var component: ChatListNavigationBar?
         private weak var state: EmptyComponentState?
-        
+
         private var scrollTheme: PresentationTheme?
         private var scrollStrings: PresentationStrings?
-        
+
         private var currentLayout: CurrentLayout?
         private var rawScrollOffset: CGFloat?
         private var currentAllowAvatarsExpansion: Bool = false
         public private(set) var clippedScrollOffset: CGFloat?
-        
+
         public var deferScrollApplication: Bool = false
         private var hasDeferredScrollOffset: Bool = false
-        
+
         public private(set) var storiesUnlocked: Bool = false
-        
+
         private var tabsNode: ASDisplayNode?
         private var tabsNodeIsSearch: Bool = false
         private weak var disappearingTabsView: UIView?
         private var disappearingTabsViewSearch: Bool = false
-        
+
         private var currentHeaderComponent: ChatListHeaderComponent?
-        
+
         override public init(frame: CGRect) {
             self.backgroundView = BlurredBackgroundView(color: .clear, enableBlur: true)
             self.backgroundView.layer.anchorPoint = CGPoint(x: 0.0, y: 1.0)
             self.separatorLayer = SimpleLayer()
             self.separatorLayer.anchorPoint = CGPoint()
-            
+
             super.init(frame: frame)
-            
+
             self.addSubview(self.backgroundView)
             self.layer.addSublayer(self.separatorLayer)
         }
-        
+
         required init?(coder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
-        
+
         override public func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
             if !self.backgroundView.frame.contains(point) {
                 return nil
             }
-            
+
             if self.alpha.isZero {
                 return nil
             }
@@ -208,61 +208,61 @@ public final class ChatListNavigationBar: Component {
                     return result
                 }
             }
-            
+
             let result = super.hitTest(point, with: event)
             return result
         }
-        
+
         public func applyCurrentScroll(transition: Transition) {
             if let rawScrollOffset = self.rawScrollOffset, self.hasDeferredScrollOffset {
                 self.applyScroll(offset: rawScrollOffset, allowAvatarsExpansion: self.currentAllowAvatarsExpansion, transition: transition)
             }
         }
-        
+
         public func applyScroll(offset: CGFloat, allowAvatarsExpansion: Bool, forceUpdate: Bool = false, transition: Transition) {
             let transition = transition
-            
+
             self.rawScrollOffset = offset
             let allowAvatarsExpansionUpdated = self.currentAllowAvatarsExpansion != allowAvatarsExpansion
             self.currentAllowAvatarsExpansion = allowAvatarsExpansion
-            
+
             if self.deferScrollApplication && !forceUpdate {
                 self.hasDeferredScrollOffset = true
                 return
             }
-            
+
             guard let component = self.component, let currentLayout = self.currentLayout else {
                 return
             }
-            
+
             let themeUpdated = component.theme !== self.scrollTheme || component.strings !== self.scrollStrings
-            
+
             self.scrollTheme = component.theme
             self.scrollStrings = component.strings
 
             let minContentOffset: CGFloat = ChatListNavigationBar.searchScrollHeight
-            
+
             let clippedScrollOffset = min(minContentOffset, offset)
             if self.clippedScrollOffset == clippedScrollOffset && !self.hasDeferredScrollOffset && !forceUpdate && !allowAvatarsExpansionUpdated {
                 return
             }
             self.hasDeferredScrollOffset = false
             self.clippedScrollOffset = clippedScrollOffset
-            
+
             let visibleSize = CGSize(width: currentLayout.size.width, height: max(0.0, currentLayout.size.height - clippedScrollOffset))
-            
+
             let previousHeight = self.separatorLayer.position.y
-            
+
             self.backgroundView.update(size: CGSize(width: visibleSize.width, height: 1000.0), transition: transition.containedViewLayoutTransition)
-            
+
             transition.setBounds(view: self.backgroundView, bounds: CGRect(origin: CGPoint(), size: CGSize(width: visibleSize.width, height: 1000.0)))
             transition.animatePosition(view: self.backgroundView, from: CGPoint(x: 0.0, y: -visibleSize.height + self.backgroundView.layer.position.y), to: CGPoint(), additive: true)
             self.backgroundView.layer.position = CGPoint(x: 0.0, y: visibleSize.height)
-            
+
             transition.setFrameWithAdditivePosition(layer: self.separatorLayer, frame: CGRect(origin: CGPoint(x: 0.0, y: visibleSize.height), size: CGSize(width: visibleSize.width, height: UIScreenPixel)))
 
             let headerTransition = transition
-            
+
             let storiesOffsetFraction: CGFloat
             let storiesUnlocked: Bool
             if allowAvatarsExpansion {
@@ -278,7 +278,7 @@ public final class ChatListNavigationBar: Component {
                 storiesOffsetFraction = 0.0
                 storiesUnlocked = false
             }
-            
+
             if allowAvatarsExpansion, transition.animation.isImmediate, let storySubscriptions = component.storySubscriptions, !storySubscriptions.items.isEmpty {
                 if self.storiesUnlocked != storiesUnlocked {
                     if storiesUnlocked {
@@ -292,53 +292,53 @@ public final class ChatListNavigationBar: Component {
                 component.allowAutomaticOrder()
             }
             self.storiesUnlocked = storiesUnlocked
-            
+
             let headerComponent = ChatListHeaderComponent(
-                sideInset: component.sideInset + 16.0,
-                primaryContent: component.primaryContent,
-                secondaryContent: component.secondaryContent,
-                secondaryTransition: component.secondaryTransition,
-                networkStatus: nil,
-                storySubscriptions: component.storySubscriptions,
-                storiesIncludeHidden: component.storiesIncludeHidden,
-                storiesFraction: storiesOffsetFraction,
-                storiesUnlocked: storiesUnlocked,
-                uploadProgress: component.uploadProgress,
-                context: component.context,
-                theme: component.theme,
-                strings: component.strings,
-                openStatusSetup: { [weak self] sourceView in
-                    guard let self, let component = self.component else {
-                        return
+                    sideInset: component.sideInset + 16.0,
+                    primaryContent: component.primaryContent,
+                    secondaryContent: component.secondaryContent,
+                    secondaryTransition: component.secondaryTransition,
+                    networkStatus: nil,
+                    storySubscriptions: component.storySubscriptions,
+                    storiesIncludeHidden: component.storiesIncludeHidden,
+                    storiesFraction: storiesOffsetFraction,
+                    storiesUnlocked: storiesUnlocked,
+                    uploadProgress: component.uploadProgress,
+                    context: component.context,
+                    theme: component.theme,
+                    strings: component.strings,
+                    openStatusSetup: { [weak self] sourceView in
+                        guard let self, let component = self.component else {
+                            return
+                        }
+                        component.openStatusSetup(sourceView)
+                    },
+                    toggleIsLocked: { [weak self] in
+                        guard let self, let component = self.component else {
+                            return
+                        }
+                        component.context.sharedContext.appLockContext.lock()
                     }
-                    component.openStatusSetup(sourceView)
-                },
-                toggleIsLocked: { [weak self] in
-                    guard let self, let component = self.component else {
-                        return
-                    }
-                    component.context.sharedContext.appLockContext.lock()
-                }
             )
-            
+
             let animationHint = transition.userData(AnimationHint.self)
-            
+
             var animationDuration: Double?
             if case let .curve(duration, _) = transition.animation {
                 animationDuration = duration
             }
-            
+
             self.currentHeaderComponent = headerComponent
             let headerContentSize = self.headerContent.update(
-                transition: headerTransition.withUserData(StoryPeerListComponent.AnimationHint(
-                    duration: animationDuration,
-                    allowAvatarsExpansionUpdated: allowAvatarsExpansionUpdated && allowAvatarsExpansion,
-                    bounce: transition.animation.isImmediate,
-                    disableAnimations: animationHint?.disableStoriesAnimations ?? false
-                )),
-                component: AnyComponent(headerComponent),
-                environment: {},
-                containerSize: CGSize(width: currentLayout.size.width, height: 44.0)
+                    transition: headerTransition.withUserData(StoryPeerListComponent.AnimationHint(
+                            duration: animationDuration,
+                            allowAvatarsExpansionUpdated: allowAvatarsExpansionUpdated && allowAvatarsExpansion,
+                            bounce: transition.animation.isImmediate,
+                            disableAnimations: animationHint?.disableStoriesAnimations ?? false
+                    )),
+                    component: AnyComponent(headerComponent),
+                    environment: {},
+                    containerSize: CGSize(width: currentLayout.size.width, height: 44.0)
             )
             let headerContentY: CGFloat
             if component.isSearchActive {
@@ -357,10 +357,10 @@ public final class ChatListNavigationBar: Component {
                     self.addSubview(headerContentView)
                 }
                 transition.setFrameWithAdditivePosition(view: headerContentView, frame: headerContentFrame)
-                
+
                 if component.isSearchActive != (headerContentView.alpha == 0.0) {
                     headerContentView.alpha = component.isSearchActive ? 0.0 : 1.0
-                    
+
                     if !transition.animation.isImmediate {
                         if component.isSearchActive {
                             headerContentView.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.14)
@@ -409,7 +409,7 @@ public final class ChatListNavigationBar: Component {
 
             let searchSize = CGSize(width: currentLayout.size.width - 6.0 * 2.0, height: navigationBarSearchContentHeight)
             var searchFrame = CGRect(origin: CGPoint(x: 6.0, y: headerContentY + searchSize.height - 16.0), size: searchSize)
-            
+
             if !component.isSearchActive {
                 searchFrame.origin.y -= component.accessoryPanelContainerHeight
             }
@@ -452,21 +452,21 @@ public final class ChatListNavigationBar: Component {
                 tabsFrame.origin.y -= 46.0
             }
             tabsFrame.origin.y += tabsSize.height * (1.0 - searchOffsetFraction)
-            
+
             var accessoryPanelContainerFrame = CGRect(origin: CGPoint(x: 0.0, y: visibleSize.height), size: CGSize(width: visibleSize.width, height: component.accessoryPanelContainerHeight))
             if !component.isSearchActive {
                 accessoryPanelContainerFrame.origin.y -= component.accessoryPanelContainerHeight
             }
-            
+
             if let disappearingTabsView = self.disappearingTabsView {
                 disappearingTabsView.layer.anchorPoint = CGPoint()
                 transition.setFrameWithAdditivePosition(view: disappearingTabsView, frame: tabsFrame.offsetBy(dx: 0.0, dy: self.disappearingTabsViewSearch ? (-currentLayout.size.height + 2.0) : 0.0))
             }
-            
+
             if let tabsNode = component.tabsNode {
                 self.tabsNode = tabsNode
                 self.tabsNodeIsSearch = component.tabsNodeIsSearch
-                
+
                 var tabsNodeTransition = transition
                 if tabsNode.view.superview !== self {
                     tabsNode.view.layer.anchorPoint = CGPoint()
@@ -475,7 +475,7 @@ public final class ChatListNavigationBar: Component {
                     self.addSubview(tabsNode.view)
                     if !transition.animation.isImmediate {
                         tabsNode.view.layer.animateAlpha(from: 0.0, to: 1.0, duration: 0.2)
-                        
+
                         if component.tabsNodeIsSearch {
                             transition.animatePosition(view: tabsNode.view, from: CGPoint(x: 0.0, y: previousHeight - visibleSize.height + 44.0), to: CGPoint(), additive: true)
                         } else {
@@ -485,10 +485,10 @@ public final class ChatListNavigationBar: Component {
                 } else {
                     transition.setAlpha(view: tabsNode.view, alpha: 1.0)
                 }
-                
+
                 tabsNodeTransition.setFrameWithAdditivePosition(view: tabsNode.view, frame: tabsFrame.offsetBy(dx: 0.0, dy: component.tabsNodeIsSearch ? (-currentLayout.size.height + 2.0) : 0.0))
             }
-            
+
             if let accessoryPanelContainer = component.accessoryPanelContainer {
                 var tabsNodeTransition = transition
                 if accessoryPanelContainer.view.superview !== self {
@@ -503,70 +503,70 @@ public final class ChatListNavigationBar: Component {
                 } else {
                     transition.setAlpha(view: accessoryPanelContainer.view, alpha: 1.0)
                 }
-                
+
                 tabsNodeTransition.setFrameWithAdditivePosition(view: accessoryPanelContainer.view, frame: accessoryPanelContainerFrame)
             }
         }
-        
+
         public func updateStoryUploadProgress(storyUploadProgress: Float?) {
             guard let component = self.component else {
                 return
             }
             if component.uploadProgress != storyUploadProgress {
                 self.component = ChatListNavigationBar(
-                    context: component.context,
-                    theme: component.theme,
-                    strings: component.strings,
-                    statusBarHeight: component.statusBarHeight,
-                    sideInset: component.sideInset,
-                    isSearchActive: component.isSearchActive,
-                    primaryContent: component.primaryContent,
-                    secondaryContent: component.secondaryContent,
-                    secondaryTransition: component.secondaryTransition,
-                    storySubscriptions: component.storySubscriptions,
-                    storiesIncludeHidden: component.storiesIncludeHidden,
-                    uploadProgress: storyUploadProgress,
-                    tabsNode: component.tabsNode,
-                    tabsNodeIsSearch: component.tabsNodeIsSearch,
-                    accessoryPanelContainer: component.accessoryPanelContainer,
-                    accessoryPanelContainerHeight: component.accessoryPanelContainerHeight,
-                    activateSearch: component.activateSearch,
-                    openStatusSetup: component.openStatusSetup,
-                    allowAutomaticOrder: component.allowAutomaticOrder
+                        context: component.context,
+                        theme: component.theme,
+                        strings: component.strings,
+                        statusBarHeight: component.statusBarHeight,
+                        sideInset: component.sideInset,
+                        isSearchActive: component.isSearchActive,
+                        primaryContent: component.primaryContent,
+                        secondaryContent: component.secondaryContent,
+                        secondaryTransition: component.secondaryTransition,
+                        storySubscriptions: component.storySubscriptions,
+                        storiesIncludeHidden: component.storiesIncludeHidden,
+                        uploadProgress: storyUploadProgress,
+                        tabsNode: component.tabsNode,
+                        tabsNodeIsSearch: component.tabsNodeIsSearch,
+                        accessoryPanelContainer: component.accessoryPanelContainer,
+                        accessoryPanelContainerHeight: component.accessoryPanelContainerHeight,
+                        activateSearch: component.activateSearch,
+                        openStatusSetup: component.openStatusSetup,
+                        allowAutomaticOrder: component.allowAutomaticOrder
                 )
                 if let currentLayout = self.currentLayout, let headerComponent = self.currentHeaderComponent {
                     let headerComponent = ChatListHeaderComponent(
-                        sideInset: headerComponent.sideInset,
-                        primaryContent: headerComponent.primaryContent,
-                        secondaryContent: headerComponent.secondaryContent,
-                        secondaryTransition: headerComponent.secondaryTransition,
-                        networkStatus: headerComponent.networkStatus,
-                        storySubscriptions: headerComponent.storySubscriptions,
-                        storiesIncludeHidden: headerComponent.storiesIncludeHidden,
-                        storiesFraction: headerComponent.storiesFraction,
-                        storiesUnlocked: headerComponent.storiesUnlocked,
-                        uploadProgress: storyUploadProgress,
-                        context: headerComponent.context,
-                        theme: headerComponent.theme,
-                        strings: headerComponent.strings,
-                        openStatusSetup: headerComponent.openStatusSetup,
-                        toggleIsLocked: headerComponent.toggleIsLocked
+                            sideInset: headerComponent.sideInset,
+                            primaryContent: headerComponent.primaryContent,
+                            secondaryContent: headerComponent.secondaryContent,
+                            secondaryTransition: headerComponent.secondaryTransition,
+                            networkStatus: headerComponent.networkStatus,
+                            storySubscriptions: headerComponent.storySubscriptions,
+                            storiesIncludeHidden: headerComponent.storiesIncludeHidden,
+                            storiesFraction: headerComponent.storiesFraction,
+                            storiesUnlocked: headerComponent.storiesUnlocked,
+                            uploadProgress: storyUploadProgress,
+                            context: headerComponent.context,
+                            theme: headerComponent.theme,
+                            strings: headerComponent.strings,
+                            openStatusSetup: headerComponent.openStatusSetup,
+                            toggleIsLocked: headerComponent.toggleIsLocked
                     )
                     self.currentHeaderComponent = headerComponent
-                    
+
                     let _ = self.headerContent.update(
-                        transition: .immediate,
-                        component: AnyComponent(headerComponent),
-                        environment: {},
-                        containerSize: CGSize(width: currentLayout.size.width, height: 44.0)
+                            transition: .immediate,
+                            component: AnyComponent(headerComponent),
+                            environment: {},
+                            containerSize: CGSize(width: currentLayout.size.width, height: 44.0)
                     )
                 }
             }
         }
-        
+
         func update(component: ChatListNavigationBar, availableSize: CGSize, state: EmptyComponentState, environment: Environment<Empty>, transition: Transition) -> CGSize {
             let themeUpdated = self.component?.theme !== component.theme
-            
+
             var uploadProgressUpdated = false
             var storySubscriptionsUpdated = false
             if let previousComponent = self.component {
@@ -577,22 +577,22 @@ public final class ChatListNavigationBar: Component {
                     storySubscriptionsUpdated = true
                 }
             }
-            
+
             self.component = component
             self.state = state
-            
+
             if themeUpdated {
                 self.backgroundView.updateColor(color: component.theme.rootController.navigationBar.blurredBackgroundColor, transition: .immediate)
                 self.separatorLayer.backgroundColor = component.theme.rootController.navigationBar.separatorColor.cgColor
             }
-            
+
             var contentHeight = component.statusBarHeight
-            
+
             if component.statusBarHeight >= 1.0 {
                 contentHeight += 3.0
             }
             contentHeight += 44.0
-            
+
             if component.isSearchActive {
                 if component.statusBarHeight < 1.0 {
                     contentHeight += 8.0
@@ -600,30 +600,30 @@ public final class ChatListNavigationBar: Component {
             } else {
                 contentHeight += navigationBarSearchContentHeight
             }
-            
+
             if component.tabsNode != nil {
                 contentHeight += 40.0
             }
-            
+
             if component.accessoryPanelContainer != nil && !component.isSearchActive {
                 contentHeight += component.accessoryPanelContainerHeight
             }
-            
+
             let size = CGSize(width: availableSize.width, height: contentHeight)
             self.currentLayout = CurrentLayout(size: size)
-            
+
             self.hasDeferredScrollOffset = true
-            
+
             if uploadProgressUpdated || storySubscriptionsUpdated {
                 if let rawScrollOffset = self.rawScrollOffset {
                     self.applyScroll(offset: rawScrollOffset, allowAvatarsExpansion: self.currentAllowAvatarsExpansion, forceUpdate: true, transition: transition)
                 }
             }
-            
+
             return size
         }
     }
-    
+
     public func makeView() -> View {
         return View(frame: CGRect())
     }
