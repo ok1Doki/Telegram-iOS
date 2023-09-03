@@ -474,6 +474,8 @@
 "DialogList.EncryptionProcessing" = "Exchanging encryption keys...";
 "DialogList.EncryptedChatStartedOutgoing" = "%@ joined your secret chat.";
 "DialogList.EncryptedChatStartedIncoming" = "%@ created a secret chat.";
+"DialogList.SwipeDownForArchive" = "Swipe down for archive";
+"DialogList.ReleaseForArchive" = "Release for archive";
 
 // Compose
 "Compose.TokenListPlaceholder" = "Whom would you like to message?";

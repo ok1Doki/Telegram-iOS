@@ -155,6 +155,7 @@ public final class ChatListNavigationBar: Component {
         public let headerContent = ComponentView<Empty>()
 
         public private(set) var searchContentNode: NavigationBarSearchContentNode?
+        public private(set) var showArchiveBarNode: ShowArchiveBarContentNode?
 
         private var component: ChatListNavigationBar?
         private weak var state: EmptyComponentState?
@@ -461,6 +462,43 @@ public final class ChatListNavigationBar: Component {
                 }
                 tabsFrame.origin.y += tabsSize.height * (1.0 - searchOffsetFraction)
             }
+
+
+            let showArchiveBar: ShowArchiveBarContentNode
+            if let current = self.showArchiveBarNode {
+                showArchiveBar = current
+            } else {
+                let compactPlaceholder: String
+                compactPlaceholder = component.strings.Common_Search
+
+                showArchiveBar = ShowArchiveBarContentNode(
+                        theme: component.theme,
+                        strings: self.component!.strings,
+                        compactPlaceholder: compactPlaceholder
+                )
+
+                showArchiveBar.view.layer.anchorPoint = CGPoint()
+                self.showArchiveBarNode = showArchiveBar
+                self.addSubview(showArchiveBar.view)
+            }
+
+            let fraction = -offset / 50.0
+            let showArchiveBarSize = CGSize(width: currentLayout.size.width, height: showArchiveBar.height)
+
+            var showArchiveBarFrame = CGRect(origin: CGPoint(x: 0.0, y: headerContentY + searchSize.height * 2 - 10.0), size: showArchiveBarSize)
+            if component.tabsNode != nil {
+                showArchiveBarFrame.origin.y += 30.0
+            }
+            showArchiveBarFrame.origin.y -= component.accessoryPanelContainerHeight
+            if (offset < 0.0) {
+                showArchiveBar.expansionProgress = fraction
+            } else {
+                showArchiveBar.expansionProgress = 0.0
+            }
+
+            transition.setFrameWithAdditivePosition(view: showArchiveBar.view, frame: showArchiveBarFrame)
+            showArchiveBar.updateLayout(size: showArchiveBarSize, leftInset: component.sideInset, rightInset: component.sideInset, transition: transition.containedViewLayoutTransition)
+
 
             var accessoryPanelContainerFrame = CGRect(origin: CGPoint(x: 0.0, y: visibleSize.height), size: CGSize(width: visibleSize.width, height: component.accessoryPanelContainerHeight))
             if !component.isSearchActive {

@@ -2470,8 +2470,8 @@ final class ChatListControllerNode: ASDisplayNode, UIGestureRecognizerDelegate {
                         } else {
                             manuallyAllow = true
                         }
-                        
-                        if manuallyAllow, case let .known(value) = offset, value + listView.tempTopInset <= -40.0 {
+
+                        if manuallyAllow, case let .known(value) = offset, value + listView.tempTopInset <= -100.0 {
                             overscrollHiddenChatItemsAllowed = true
                         }
                     }
